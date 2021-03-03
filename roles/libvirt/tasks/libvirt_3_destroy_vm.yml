@@ -1,0 +1,12 @@
+---
+
+- include: "commands/remove_vm.yml"
+  vars:
+    vm_name: "{{ inventory_hostname }}"
+    vm_ip: "{{ host_ip }}"
+
+
+- include: "commands/remove_files.yml"
+  vars:
+    vm_name: "{{ inventory_hostname }}"
+    vm_ip: "{{ host_ip }}"

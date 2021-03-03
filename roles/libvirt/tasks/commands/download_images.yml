@@ -1,0 +1,22 @@
+---
+
+- name: Download images
+  delegate_to: "{{ host_placement }}"
+  become: yes
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ pool_path }}/{{ item.url | basename }}"
+    checksum: "{{ item.hash }}"
+    force: no
+    use_proxy: "{{ http_proxy or '' | length > 0 | bool }}"
+    validate_certs: no # because http_proxy
+    owner: "{{ pool_user }}"
+    group: "{{ pool_user }}"
+  environment:
+    http_proxy: "{{ http_proxy or '' }}"
+    https_proxy: "{{ https_proxy or '' }}"
+  register: libvirt_download_image
+  with_items:
+    - "{{ images_to_download }}"
+
+

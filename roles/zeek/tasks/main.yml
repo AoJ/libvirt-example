@@ -1,0 +1,2 @@
+---
+- include: "{{ role_type }}.yml"

@@ -1,0 +1,61 @@
+---
+
+- name: INSTALL | create docker log and etc directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0770
+    owner: root
+    group: docker
+  with_items:
+    - /var/log/docker
+    - /etc/docker
+
+
+- name: CONFIG | Setup logrotate rules for docker logs
+  template:
+    src: "logrotate-docker.j2"
+    dest: /etc/logrotate.d/docker
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: CONFIG | Setup rsyslog rules for docker daemon
+  template:
+    src: "docker.conf.j2"
+    dest: /etc/rsyslog.d/docker.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart rsyslog
+
+
+- name: CONFIG | Setup docker daemon config
+  template:
+    src: "docker.json.j2"
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart docker
+
+
+- name: Adding admin users to docker group
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_items:
+    - "{{ admin_users }}"
+
+
+- meta: flush_handlers
+
+
+- name: CONFIG | Enable docker service 
+  service: 
+    name: docker
+    state: started
+    enabled: yes
+  no_log: true

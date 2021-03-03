@@ -1,0 +1,24 @@
+---
+
+- name: INSTALL | setup properties
+  set_fact:
+    image_name: fixel/zeek
+    image_tag: latest
+
+
+- name: "INSTALL | check installed docker image {{ image_name }}:{{ image_tag }}"
+  command: >
+    docker
+      images
+      --filter "reference={{ image_name }}:{{ image_tag }}"
+      --format "{{ '{{.Repository}}:{{.Tag}}' }}"
+  register: docker_image_state
+  changed_when: false
+
+
+- name: "INSTALL | pull docker image {{ image_name }}"
+  command: >
+    docker
+      pull
+      "{{ image_name }}:{{ image_tag }}"
+  when: docker_image_state.stdout == ""

@@ -1,0 +1,14 @@
+/var/log/zeek/*.log {
+    daily
+    maxage 90
+    rotate 9999
+    size 40M
+    compress
+    missingok
+    notifempty
+    dateext
+    dateformat .%Y-%m-%d
+    postrotate
+        pkill -HUP rsyslog > /dev/null 2>&1 || true
+    endscript
+}

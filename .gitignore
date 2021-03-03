@@ -1,0 +1,9 @@
+*.retry
+.idea
+.iml
+plugin/*/*/__pycache__/
+*.py[cod]
+
+test-it.sh
+update-dns.sh
+playbooks/.cdh-password/

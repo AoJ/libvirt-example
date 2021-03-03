@@ -1,0 +1,72 @@
+---
+
+
+- name: Check if cgroup memory and swapaccount in kernel
+  shell: grep GRUB_CMDLINE_LINUX /etc/default/grub | grep -c "intel_iommu=on"
+  register: cgroup_status
+  ignore_errors: true
+  when: intel_iommu
+
+
+- name: Enable cgroup memory and swapaccount
+  lineinfile:
+    dest: "/etc/default/grub"
+    regexp: 'GRUB_CMDLINE_LINUX="(.*)"'
+    line: 'GRUB_CMDLINE_LINUX="\1 intel_iommu=on"'
+    backrefs: yes
+  when: intel_iommu and cgroup_status.stdout == "0"
+
+
+- name: update-grub
+  shell: grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
+  when: intel_iommu and cgroup_status.stdout == "0"
+
+
+- name: reboot if we need it
+  shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+  async: 1 
+  poll: 0
+  ignore_errors: true
+  when: intel_iommu and cgroup_status.stdout == "0"
+
+
+- name: waiting for server to come back
+  local_action: wait_for host={{ansible_fqdn}} state=started timeout=600 delay=15
+  sudo: false
+  when: intel_iommu and cgroup_status.stdout == "0"
+
+
+- name: active ip forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+
+- name: active ip forwarding
+  sysctl:
+    name: net.ipv4.conf.all.forwarding
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+
+- name: active ip forwarding
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+
+- name: CONFIG | start libvirtd
+  service: 
+    name: libvirtd
+    state: started
+    enabled: yes
+
+

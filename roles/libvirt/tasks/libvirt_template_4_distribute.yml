@@ -1,0 +1,10 @@
+---
+
+- name: DEPLOY | distribute template image to local repository
+  copy:
+    src: "{{ repository_path }}/{{ template_name }}.qcow2"
+    dest: "{{ pool_path }}/{{ template_name }}.qcow2"
+
+# TODO pool refresh
+
+

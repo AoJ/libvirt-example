@@ -1,0 +1,25 @@
+---
+
+- include: "commands/create_pool.yml"
+
+- include: "commands/download_images.yml"
+
+#
+#- include: "commands/create_pool.yml"
+#  vars:
+#    pool_name: "{{ item.key }}"
+#    pool_path: "{{ item.value.pool_path }}"
+#    pool_user: "{{ item.value.pool_user }}"
+#  with_dict: "{{ libvirt_pools }}"
+
+
+#- include: "commands/download_images.yml"
+#  vars:
+#    pool_name: "{{ pool.key }}"
+#    pool_path: "{{ pool.value.pool_path }}"
+#    pool_user: "{{ pool.value.pool_user }}"
+#    images_to_download: "{{ pool.value.download | default([]) }}"
+#  with_dict: "{{ libvirt_pools }}"
+#  loop_control:
+#    loop_var: pool
+

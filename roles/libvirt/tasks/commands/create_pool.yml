@@ -1,0 +1,39 @@
+---
+- block:
+  - name: DEPLOY | create pool dir
+    file:
+      path: "{{ pool_path }}"
+      state: directory
+      owner: "{{ pool_user }}"
+      group: "{{ pool_user }}"
+      mode: 0770
+
+
+  - name: DEPLOY | create pool {{ pool_name }} on path {{ pool_path }}
+  #  become_user: "{{ pool_user }}"
+    virt_pool:
+      state: present
+      name: "{{ pool_name }}"
+      xml: '{{ lookup("template", "pool.xml.j2") }}'
+      uri: "{{ virt_connection }}"
+
+
+  - name: DEPLOY | active pool {{ pool_name }}
+  #  become_user: "{{ pool_user }}"
+    virt_pool:
+      state: active
+      autostart: yes
+      name: "{{ pool_name }}"
+      uri: "{{ virt_connection }}"
+
+
+  - name: DEPLOY | autostart pool {{ pool_name }}
+  #  become_user: "{{ pool_user }}"
+    virt_pool:
+      autostart: yes
+      name: "{{ pool_name }}"
+      uri: "{{ virt_connection }}"
+
+
+  delegate_to: "{{ host_placement }}"
+  become: yes

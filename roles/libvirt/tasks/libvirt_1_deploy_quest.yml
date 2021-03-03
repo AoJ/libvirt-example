@@ -1,0 +1,19 @@
+---
+
+
+- name: variables
+  set_fact:
+    memory_mb: 8096
+
+- name: define vm from xml and set autostart
+  local_action:
+    module: virt
+      command=define
+      xml="{{ lookup('template', 'vm.xml.j2') }}"
+      autostart=yes
+
+- name: start vm
+  local_action:
+    module: virt
+      name={{ inventory_hostname }}
+      state=running

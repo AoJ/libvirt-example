@@ -1,0 +1,36 @@
+[global]
+        run as user = netdata
+        # 7 days =  7 * 24 * 60 * 60 = 604800 seconds
+        history = 604800
+        memory mode = dbengine
+        page cache size = 128 # max memory in MB
+        dbengine multihost disk space = 2048 # max disk usage
+        process scheduling policy = idle
+        OOM score = 1000
+        hostname = {{ inventory_hostname }}
+        update every = 5
+        debug log = none
+        error log = none
+        access log = none
+
+[web]
+        bind to = 0.0.0.0
+        web files owner = root
+        web files group = netdata
+        allow connections from = localhost 10.17.* 172.17.* {{ allowlist_ips | join(' ') }}
+        allow dashboard from = localhost 10.17.* 172.17.* {{ allowlist_ips | join(' ') }}
+        allow badges from = localhost 10.17.* 172.17.* {{ allowlist_ips | join(' ') }}
+        allow streaming from = localhost 10.17.* 172.17.* {{ allowlist_ips | join(' ') }}
+        allow netdata.conf from = localhost fd* 10.* 192.168.* 172.16.* 172.17.* 172.18.* 172.19.* 172.20.* 172.21.* 172.22.* 172.23.* 172.24.* 172.25.* 172.26.* 172.27.* 172.28.* 172.29.* 172.30.* 172.31.* 127.* {{ allowlist_ips | join(' ') }}
+        allow management from = localhost 10.17.* 172.17.* {{ allowlist_ips | join(' ') }}
+
+[registry]
+        registry hostname = {{ inventory_hostname }}
+
+
+[plugins]
+        proc = yes
+        python.d = no
+        charts.d = no
+        node.d = no
+        go.d = yes

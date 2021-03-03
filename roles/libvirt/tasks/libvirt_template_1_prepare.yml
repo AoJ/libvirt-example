@@ -1,0 +1,21 @@
+---
+
+- name: INSTALL | SELinux is disabled
+  selinux:
+    policy: targeted
+    state: disabled
+
+- name: INSTALL | Disable Transparent Huge Pages in Grub2
+  lineinfile:
+    dest: /etc/default/grub
+    state: present
+    line: 'GRUB_CMDLINE_LINUX=$GRUB_CMDLINE_LINUX" transparent_hugepage=never"'
+
+- name: INSTALL | upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+    update_cache: yes
+    exclude: java*
+
+

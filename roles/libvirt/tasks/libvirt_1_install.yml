@@ -1,0 +1,56 @@
+---
+
+
+- name: INSTALL | default yum/dnf packages for libvirt
+  yum:
+    name: "{{ packages }}"
+    state: present
+    update_cache: no
+  vars:
+    packages:
+      - qemu-kvm
+      - libvirt
+#      - libvirt-python
+      - libguestfs-tools
+      - virt-install
+      - genisoimage
+      - python3
+      - rsync
+      - screen
+      - net-tools
+      - polkit
+      - wget
+      - nano
+      - htop
+      - nmon
+  when: ansible_pkg_mgr in ['yum', 'dnf']
+
+
+- name: INSTALL | dnf packages
+  yum:
+    name: "{{ packages }}"
+    state: present
+    update_cache: no
+  vars:
+    packages:
+      - python36
+      - epel-release
+      - gcc
+      - make
+      - python36-devel
+  when: ansible_pkg_mgr in ['yum', 'dnf']
+
+
+- name: INSTALL | pip modules
+  pip:
+    name: "{{ packages }}"
+    executable: pip3
+  vars:
+    packages:
+      - lxml
+      - jmespath
+      - pyOpenSSL
+      - Jinja2
+      - Ipaddress
+      - asn1crypto
+      - pycrypto

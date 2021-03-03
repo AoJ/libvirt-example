@@ -1,0 +1,53 @@
+---
+
+vm_cpu: 1
+vm_memory: 1024
+vm_os: 80G
+vm_data: 10G
+
+ansible_python_interpreter: /usr/bin/python3
+
+hostname: x.nxiii.cc
+#os_generate_hosts_file: no
+
+admin_users:
+  - aoj
+
+os_extra_packages: []
+
+
+http_proxy:
+https_proxy:
+
+default_vm_template: CentOS-7-x86_64-GenericCloud-2009
+
+
+vm_data_disks:
+  - data
+
+pool_path: /var/data/vm
+pool_user: "qemu"
+pool_name: vm
+images_to_download:
+  - url: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2"
+    hash: "sha1:f3d9d24c2d7e197f64d794b99a4bac5b29d729cd"
+
+virt_connection: qemu:///system
+libvirt_os_disk_suffx: ".root.qcow2"
+libvirt_data_disk_suffx: ".data.qcow2"
+libvirt_conf_iso_suffix: ".configuration.iso"
+libvirt_vm_network: "bridge=br1"
+libvirt_vm_default_ssh_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMgO3NYNEVQCQUzViAKoBjOSERArP6FpLVVSydH+nXC1 aoj@k.nxiii.cc
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINVuozQ84P273Gom+XOE6zHpXntkBFuUPv6H9scEKHHK aoj@mac12b
+libvirt_vm_eth0: |
+  auto eth0
+  iface eth0 inet static
+  address 51.89.76.77
+  network 51.89.76.72
+  netmask 255.255.255.248
+  broadcast 51.89.76.79
+  gateway 51.89.76.78
+  dns-search nxiii.cc local.nxiii.cc n13.cz
+  dns-nameservers 1.1.1.1
+

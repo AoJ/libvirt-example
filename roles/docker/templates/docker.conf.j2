@@ -1,0 +1,7 @@
+$template DockerJupyterLogs, "/var/log/docker/container-%syslogtag:R,ERE,1,ZERO:.*container_name/([^\[]+)--end%.log"
+if $syslogtag contains 'container_name/'  then -?DockerJupyterLogs
+& stop
+
+$template DockerLogs, "/var/log/docker/daemon.log"
+if $programname startswith 'dockerd' then -?DockerLogs
+& stop

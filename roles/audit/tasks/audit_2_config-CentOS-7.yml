@@ -1,0 +1,75 @@
+---
+
+- name: SECURITY | configure auditd
+  template:
+    src: 'auditd.conf.j2'
+    dest: '/etc/audit/auditd.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0640'
+
+
+- name: SECURITY | configure audit rules
+  template:
+    src: 'audit.rules.j2'
+    dest: '/etc/audit/rules.d/audit.rules'
+    owner: 'root'
+    group: 'root'
+    mode: '0600'
+  register: audit_rules
+
+
+- name: CONFIG | Enable auditd commands for ssh shell
+  lineinfile:
+    path: /etc/pam.d/sshd
+    regexp: 'pam_tty_audit\.so'
+    line: "session required pam_tty_audit.so enable=*"
+
+
+- name: SECURITY | configure audisp-remote.conf
+  template:
+    src: 'audisp-remote.conf.j2'
+    dest: '/etc/audisp/audisp-remote.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0640'
+
+
+- name: CONFIG | configure au-remote.conf
+  lineinfile:
+    path: /etc/audisp/plugins.d/au-remote.conf
+    regexp: '^active '
+    line: "active = {% if security_auditd_remote_server %}yes{% else %}no{% endif %}"
+
+
+- name: CONFIG | Deny all connection to auditd agent
+  lineinfile:
+    path: /etc/hosts.deny
+    create: yes
+    regexp: '^auditd:'
+    line: "auditd: ALL"
+
+
+- name: CONFIG | Allow connections to auditd agent for allowed_ips
+  lineinfile:
+    path: /etc/hosts.allow
+    create: yes
+    regexp: '^auditd:'
+    state: "{% if security_auditd_server_enable %}present{% else%}absent{%endif%}"
+    line: "auditd: {{ security_auditd_server_allowed_ips | join(' ') }}"
+
+
+- name: CONFIG | Confirm important server reboot
+  pause:
+    prompt: "Are you sure you want to reboot {{ ansible_hostname }}? (yes/no)"
+  register: confirm_reboot
+  when: audit_rules is changed
+
+
+
+- name: CONFIG | Reboot after change audit rules
+  reboot:
+    reboot_timeout: 300
+  when: audit_rules is changed and confirm_reboot.user_input | bool
+
+

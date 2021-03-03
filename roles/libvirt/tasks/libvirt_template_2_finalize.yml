@@ -1,0 +1,34 @@
+---
+
+- name: INSTALL | cleanup image and prepare to redeploy
+  shell: |
+    set -x +e
+    systemctl stop rsyslog.service || true
+    service auditd stop || true
+    package-cleanup --oldkernels --count=1 -y
+    package-cleanup --cleandupes -y
+    yum clean all -y
+    logrotate -f /etc/logrotate.conf
+    rm -f /var/log/*-???????? /var/log/*.gz
+    rm -f /var/log/dmesg.old
+    rm -rf /var/log/anaconda
+    rm -rf /var/log/cloud-init*
+    rm -rf /var/lib/cloud/*
+    cat /dev/null > /var/log/audit/audit.log
+    cat /dev/null > /var/log/wtmp
+    cat /dev/null > /var/log/lastlog
+    cat /dev/null > /var/log/grubby
+    cat /dev/null > /var/log/boot.log
+    rm -f /etc/udev/rules.d/70*
+    rm -f /etc/ssh/*key*
+    unset HISTFILE
+    rm -f ~root/.bash_history
+    rm -rf ~root/.ssh/
+    # does not works on centos7 (wrong python package six)
+    cloud-init clean --logs
+    rm -rf /var/lib/cloudera-scm-agent/*
+    find /var/log/cloudera-scm-agent -mindepth 1 -delete || true
+    find /opt/cloudera/parcels/.flood -mindepth 1 -delete || true
+
+
+

@@ -1,0 +1,237 @@
+
+- block:
+    - name: DEPLOY | find data disks
+      set_fact:
+        vm_data_disks: >
+          {{ hostvars[host_placement].ansible_mounts
+            | selectattr('mount', 'match', '^/data[0-9]*$')
+            | map(attribute='mount')
+            | map('regex_replace', '^/(data[0-9]*)$', '\1')
+            | list
+          }}
+      when: vm_data_disks | default([]) | length == 0
+
+
+    # get information from all hypervisors
+    # the vm can be spawned on another host that is
+    # filled in host_placement
+    - name: DEPLOY | Check if vm {{ vm_name }} exists
+      virt:
+        name: "{{ vm_name }}"
+        command: status
+        uri: "{{ virt_connection }}"
+      register: libvirt_vm_exists
+      ignore_errors: yes
+      failed_when: >
+        libvirt_vm_exists.status is not defined
+        or (
+          libvirt_vm_exists.msg is defined 
+          and libvirt_vm_exists.msg.endswith(" not found")
+        )
+
+
+    - name: DEPLOY | debug Check if vm {{ vm_name }} eixsts
+      debug:
+        var: libvirt_vm_exists
+
+
+    - name: DEPLOY | generate password for quest
+      command: >
+        python3 -c "import crypt, getpass, pwd; print(crypt.crypt('xxxtest', '\$6\${{ vm_name }}\$'))"
+      register: libvirt_create_root_password
+      changed_when: false
+
+
+    - name: DEPLOY | create disk for VM {{ vm_name }}
+      command: >
+        virsh
+          vol-clone
+          --pool "{{ pool_name }}"
+          "{{ vm_template | default(default_vm_template) }}.qcow2"
+          "{{ vm_name }}{{ libvirt_os_disk_suffx }}"
+      register: libvirt_create_disk
+      args:
+        creates: "{{ pool_path }}/{{ vm_name }}{{ libvirt_os_disk_suffx }}"
+
+
+    - name: DEPLOY | create temp file for meta-data
+      tempfile:
+        state: directory
+        suffix: "-libvirt"
+      when: libvirt_create_disk is changed
+      register: libvirt_vm_metadata
+
+
+    - name: DEPLOY | expand vm eth0 variable
+      set_fact:
+        libvirt_vm_eth0_expanded: "{{ libvirt_vm_eth0 }}"
+
+
+    - name: DEPLOY | create meta-data
+      template:
+        src: "vm.meta-data.j2"
+        dest: "{{ libvirt_vm_metadata.path }}/meta-data"
+      when: libvirt_vm_metadata.path is defined
+
+
+    - name: DEPLOY | create user-data
+      template:
+        src: "vm.user-data.j2"
+        dest: "{{ libvirt_vm_metadata.path }}/user-data"
+      when: libvirt_vm_metadata.path is defined
+
+
+    - name: DEPLOY | create iso image with configuration
+      shell: >
+        set -eu;
+        cd "{{ libvirt_vm_metadata.path }}" &&
+        genisoimage
+        -output "{{ pool_path }}/{{ vm_name }}{{ libvirt_conf_iso_suffix }}"
+        -volid cidata
+        -joliet
+        -rock user-data meta-data
+      when: libvirt_vm_metadata.path is defined
+
+
+    - name: DEPLOY | setup vm disk size for {{ vm_name }}
+      command: >
+        virsh
+          vol-resize
+          --pool "{{ pool_name }}"
+          "{{ vm_name }}{{ libvirt_os_disk_suffx }}"
+          "{{ vm_os }}"
+      when: libvirt_create_disk is changed
+
+
+    - name: DEPLOY | remove tmp dir
+      file:
+        state: absent
+        path: "{{ libvirt_vm_metadata.path }}/"
+      when: libvirt_vm_metadata.path is defined
+
+
+    - name: DEPLOY | create all data disks images
+      shell: |
+        set -eu
+        ret=TASK_NOT_CHANGED
+        {% for disk_name in vm_data_disks %}
+          disk_path="{{ pool_path }}/{{ vm_name }}.{{ disk_name }}{{ libvirt_data_disk_suffx }}"
+          if [[ ! -e "$disk_path" ]]; then
+            qemu-img create -f qcow2 "$disk_path" "{{ vm_data }}"
+            ret=CHANGED
+          fi
+          virsh pool-refresh "{{ pool_name }}" >/dev/null
+        {% endfor %}
+        echo $ret
+      register: vm_data_disk_create
+      changed_when: vm_data_disk_create.stdout != "TASK_NOT_CHANGED"
+
+
+    #- name: DEPLOY | create all data disks images
+    #  delegate_to: "{{ host_placement }}"
+    #  shell: |
+    #    set -eu
+    #    ret=TASK_NOT_CHANGED
+    #    {% for disk_name in vm_data_disks %}
+    #      disk_path="/{{ disk_name }}/{{ vm_name }}{{ libvirt_data_disk_suffx }}"
+    #      if [[ ! -e "$disk_path" ]]; then
+    #        qemu-img create -f qcow2 "$disk_path" "{{ vm_data }}"
+    #        ret=CHANGED
+    #      fi
+    #      virsh pool-refresh "{{ disk_name }}" >/dev/null
+    #    {% endfor %}
+    #    echo $ret
+    #  register: vm_data_disk_create
+    #  changed_when: vm_data_disk_create.stdout != "TASK_NOT_CHANGED"
+
+
+    - name: DEPLOY | refresh pool
+      command: "virsh pool-refresh {{ pool_name }}"
+      changed_when: no
+
+
+    - meta: flush_handlers
+
+    - name: DEPLOY | find data disks mount path
+      set_fact:
+        vm_data_disk: >
+          {{ vm_data_disks
+            | map('regex_replace', '^(.*)$', '--disk vol=' + pool_name + '/' + vm_name + '.\1' + libvirt_data_disk_suffx + ',format=qcow2,bus=virtio')
+            | list
+            | join(' ')
+          }}
+
+    #- name: DEPLOY | find data disks mount path
+    #  set_fact:
+    #    vm_data_disk: >
+    #      {{ vm_data_disks
+    #        | map('regex_replace', '^(.*)$', '--disk vol=\1/' + vm_name + libvirt_data_disk_suffx + ',format=qcow2,bus=virtio')
+    #        | list
+    #        | join(' ')
+    #      }}
+
+
+
+    - name: DEPLOY | create and start vm {{ vm_name }}
+      command: >
+        virt-install
+        --connect "{{ virt_connection }}"
+        --name "{{ vm_name }}"
+        --vcpus "{{ vm_cpu }}"
+        --memory "{{ vm_memory }}"
+        --autostart
+        --memballoon virtio
+        --network "{{ libvirt_vm_network }}"
+        --boot hd
+        --disk "vol={{ pool_name }}/{{ vm_name }}{{ libvirt_os_disk_suffx }},format=qcow2,bus=virtio"
+        --disk "vol={{ pool_name }}/{{ vm_name }}{{ libvirt_conf_iso_suffix }},bus=virtio"
+        {{ vm_data_disk }}
+        --noautoconsole
+        --graphics none
+        --os-variant centos7.0
+        --console pty,target_type=serial
+        --machine q35
+      when: libvirt_vm_exists is failed
+
+
+    - name: DEPLOY | start vm {{ vm_name }}
+      virt:
+        name: "{{ vm_name }}"
+        state: running
+        uri: "{{ virt_connection }}"
+
+
+    - name: Wait for server to up and ssh accessible
+      wait_for_connection:
+        delay: 1
+        timeout: 300
+      no_log: true
+
+
+    # know_hosts does not works with unashed hostname
+    - name: DEPLOY | remove old ssh keys
+      shell: |
+        set +e
+        ssh-keygen -R "{{ vm_name }}"
+        ssh-keygen -R "{{ vm_ip }}"
+        ssh-keyscan -t ecdsa "{{ vm_name }}" >> ~/.ssh/known_hosts
+      when: libvirt_vm_exists is failed
+      ignore_errors: true
+      delegate_to: "{{ host_placement }}"
+
+  delegate_to: "{{ host_placement }}"
+  become: yes
+
+
+# know_hosts does not works with unashed hostname
+- name: DEPLOY | remove old ssh keys
+  become: no
+  local_action: >
+    shell
+    set +e;
+    ssh-keygen -R "{{ vm_name }}";
+    ssh-keygen -R "{{ vm_ip }}";
+    ssh-keyscan -t ecdsa "{{ vm_name }}" >> ~/.ssh/known_hosts;
+  ignore_errors: true
+#  when: libvirt_vm_exists is failed
+

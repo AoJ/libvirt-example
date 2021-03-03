@@ -1,0 +1,8 @@
+---
+
+- name: INSTALL | default yum/dnf packages
+  yum:
+    name: netdata
+    state: present
+    update_cache: no
+  when: ansible_pkg_mgr in ['yum', 'dnf']

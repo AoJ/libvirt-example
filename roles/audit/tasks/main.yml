@@ -1,0 +1,17 @@
+---
+
+- name: debug distribution
+  debug:
+    msg: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}"
+
+# tasks file for security
+# try:
+# - {{ role_type }}-CentOS-8.yml
+# - {{ role_type }}-CentOS.yml
+# - {{ role_type }}.yml
+- include: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ role_type }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+        - "{{ role_type }}-{{ ansible_distribution }}.yml"
+        - "{{ role_type }}.yml"

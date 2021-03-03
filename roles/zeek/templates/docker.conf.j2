@@ -1,0 +1,7 @@
+$template zeekJupyterLogs, "/var/log/zeek/container-%syslogtag:R,ERE,1,ZERO:.*container_name/([^\[]+)--end%.log"
+if $syslogtag contains 'container_name/'  then -?zeekJupyterLogs
+& stop
+
+$template zeekLogs, "/var/log/zeek/daemon.log"
+if $programname startswith 'zeekd' then -?zeekLogs
+& stop

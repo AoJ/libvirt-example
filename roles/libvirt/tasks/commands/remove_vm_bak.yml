@@ -1,0 +1,66 @@
+---
+
+# get information from all hypervisors
+# the vm can be spawned on another host that is
+# filled in host_placement
+- name: DEPLOY | Check if vm eixsts
+  action:
+    module: virt
+      name="{{ inventory_hostname }}"
+      command=status
+      uri={{ virt_connection }}
+  register: vm_exists
+  failed_when: >
+    not (
+      vm_exists.status is defined
+      or (vm_exists.msg is defined and vm_exists.msg.endswith(" not found"))
+    )
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ groups['hypervisor'] }}"
+
+
+- name: DEPLOY | debug Check if vm eixsts
+  debug:
+    msg: "{{ item.item }} - {{ item.status | default(item.msg) == 'running' }}"
+  with_items:
+    - "{{ vm_exists.results }}"
+
+
+# shutdown vm on all hosts, where is running
+# we can't run vm on more hosts due to
+# ip adderss conflicts
+- name: DEPLOY | Force shutdown vm
+  action:
+    module: virt
+      name="{{ inventory_hostname }}"
+      state=destroyed
+      uri={{ virt_connection }}
+  when: item.status is defined
+  delegate_to: "{{ item.item }}"
+  with_items:
+    - "{{ vm_exists.results }}"
+
+
+- name: DEPLOY | Remove VM files
+  action:
+    module: file
+      state=absent
+      path={{ vm_os_disk_path }}
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ groups['hypervisor'] }}"
+
+
+- name: DEPLOY | Remove VM files
+  action:
+    module: file
+      state=absent
+      path={{ vm_conf_path }}
+  delegate_to: "{{ item }}"
+  with_items:
+    - "{{ groups['hypervisor'] }}"
+
+
+
+

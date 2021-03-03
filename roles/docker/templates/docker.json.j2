@@ -1,0 +1,9 @@
+{
+  "live-restore": true,
+  "log-driver": "syslog",
+  "log-opts": {
+    "tag": "container_name/{{ '{{' }}.Name{{ '}}' }}",
+    "labels": "${ENV_NAME}",
+    "syslog-facility": "daemon"
+  }
+}

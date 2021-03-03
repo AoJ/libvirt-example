@@ -1,0 +1,9 @@
+---
+- name: reload rsyslog
+  command: pkill -HUP rsyslog
+
+- name: restart rsyslog
+  command: systemctl restart rsyslog
+
+- name: restart docker
+  command: systemctl restart docker

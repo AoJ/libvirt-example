@@ -1,0 +1,88 @@
+---
+
+- name: Ensure a locale en_US.utf-8 exists
+  command: localedef -c -f UTF-8 -i en_US en_US.UTF-8
+  changed_when: false
+
+
+- name: CONFIG | setup /etc/environment LANG
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    regexp: "^LANG="
+    create: true
+    line:  "LANG=en_US.UTF-8"
+
+
+- name: CONFIG | setup /etc/environment LC_ALL
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    regexp: "^LC_ALL="
+    create: true
+    line:  "LC_ALL=en_US.UTF-8"
+
+
+- name: IPv6 for .all and .default are both disabled.
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+  with_items:
+    - net.ipv6.conf.all.disable_ipv6
+    - net.ipv6.conf.default.disable_ipv6
+  when: disable_ipv6 is defined and disable_ipv6 == true
+
+
+- name: Setup /etc/hosts
+  template:
+    src: "hosts.j2"
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'
+  when: os_generate_hosts_file
+
+
+- name: Setup hostname
+  hostname:
+    name: "{{ hostname }}"
+  when: hostname is defined
+  register: update_hostname
+
+
+- name: CONFIG | create limits.d-directory if it does not exist
+  file:
+    path: '/etc/security/limits.d'
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
+    state: 'directory'
+
+
+- name: CONFIG | create additional limits config file -> 10.hardcore.conf
+  pam_limits:
+    dest: '/etc/security/limits.d/10.hardcore.conf'
+    domain: '*'
+    limit_type: hard
+    limit_item: core
+    value: '0'
+    comment: Prevent core dumps for all users. These are usually not needed and may contain sensitive information
+
+
+- name: CONFIG | set 10.hardcore.conf perms to 0400 and root ownership
+  file:
+    path: /etc/security/limits.d/10.hardcore.conf
+    owner: 'root'
+    group: 'root'
+    mode: '0440'
+    state: touch
+    modification_time: preserve
+    access_time: preserve
+
+
+- name: Reboot immediately
+  reboot:
+    reboot_timeout: 300
+  when: update_hostname.changed
+

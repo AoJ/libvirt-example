@@ -1,0 +1,4 @@
+---
+
+# tasks file for libvirt
+- include: "{{ role_type }}.yml"

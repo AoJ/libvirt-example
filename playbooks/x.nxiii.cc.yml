@@ -1,0 +1,40 @@
+---
+
+- name: Get ip addresses from DNS
+  hosts: all_nodes
+  gather_facts: no
+  pre_tasks:
+    - name: get public of host from DNS
+      local_action: command dig +short '{{ inventory_hostname }}'
+      register: host_ip_raw
+      changed_when: false
+      when: host_ip | default('') | length == 0
+    - name: set public ip to vars
+      set_fact:
+        host_ip: "{{ host_ip_raw.stdout }}"
+        vm_ip: "{{ host_ip_raw.stdout }}"
+      when: host_ip | default('') | length == 0
+
+
+- name: Create vm if not exists yet
+  hosts: x_nxiii_cc
+  become: yes
+  gather_facts: no
+  roles:
+    - { role: libvirt, role_type: libvirt_prepare_1_pool, tags: [deploy] }
+    - { role: libvirt, role_type: libvirt_1_soft_create2, tags: [deploy] }
+#    - { role: libvirt, role_type: libvirt_2_wait_for_up, tags: [deploy] }
+
+
+- name: Install VM
+  hosts: x_nxiii_cc
+  become: yes
+  gather_facts: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  roles:
+    - { role: common, role_type: common_2_config, tags: [config] }
+    - { role: common, role_type: common_3_config_ssh_access, tags: [config, ssh] }
+    - { role: common, role_type: common_4_install_firewalld, tags: [install] }
+    - { role: audit, role_type: audit_1_install, tags: [install, audit] }
+    - { role: audit, role_type: audit_2_config, tags: [install, audit] }

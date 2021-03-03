@@ -1,0 +1,92 @@
+---
+
+
+- name: INSTALL | default apt packages
+  apt:
+    name: "{{ packages + os_extra_packages }}"
+    state: present
+    update_cache: no
+  vars:
+    packages:
+      - apt-transport-https
+      - mosh
+      - screen
+      - git-core
+      - bridge-utils
+      - iptables-persistent
+#      - raspberrypi-kernel-headers
+      - dirmngr
+      - telnet
+      - vnstat
+      - chrony
+      - ncdu
+      - python3
+  when: ansible_pkg_mgr == 'apt'
+
+
+
+- name: INSTALL | default apk packages
+  apk:
+    name: "{{ packages + os_extra_packages }}"
+    state: present
+    update_cache: no
+  vars:
+    packages:
+      - mosh
+      - screen
+      - bridge-utils
+      - chrony
+      - ncdu
+      - ca-certificates
+      - curl
+      - nano
+      - python3
+  when: ansible_pkg_mgr == 'apk'
+
+
+- name: INSTALL | epel for yum/dnf
+  yum:
+    name: epel-release
+    state: present
+    update_cache: no
+  register: epel_release
+  when: ansible_pkg_mgr in ['yum', 'dnf']
+
+
+- name: INSTALL | update cache after epel installed
+  yum:
+    update_cache: yes
+  when: epel_release is changed
+
+
+- name: INSTALL | default yum/dnf packages
+  yum:
+    name: "{{ packages + os_extra_packages }}"
+    state: present
+    update_cache: no
+  vars:
+    packages:
+      - chrony
+      - ca-certificates
+      - curl
+      - nano
+      - glibc-locale-source
+      - glibc-langpack-en
+      - python3
+      - net-tools
+      - jq
+      - gcc
+      - pcre-devel
+      - make
+      - ncdu
+      - rsync
+      - screen
+      - unzip
+      - telnet
+      - tree
+      - htop
+      - nmon
+  when: ansible_pkg_mgr in ['yum', 'dnf']
+
+
+

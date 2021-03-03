@@ -1,0 +1,98 @@
+---
+
+- name: INSTALL | create netdata directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0770
+    owner: netdata
+    group: netdata
+  with_items:
+    - /etc/netdata
+    - /var/log/netdata
+    - /usr/lib64/netdata
+    - /usr/lib64/netdata/conf.d
+    - /var/run/netdata
+
+- name: INSTALL | create run directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0775
+    owner: netdata
+    group: netdata
+  with_items:
+    - /var/run/netdata
+
+
+- name: INSTALL | setup permission for share directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+    mode: 0750
+    owner: root
+    group: netdata
+  with_items:
+    - /usr/share/netdata
+    - /usr/share/netdata/web
+
+
+- name: CONFIG | Setup netdata conf
+  template:
+    src: "netdata.conf.j2"
+    dest: /etc/netdata/netdata.conf
+    owner: netdata
+    group: netdata
+    mode: '0660'
+  notify: restart netdata
+
+
+- name: CONFIG | setup FW in CentOS 8
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "8"
+  block:
+    - name: CONFIG | Add netdata service to firewalld
+      template:
+        src: "netdata.xml.j2"
+        dest: /usr/lib/firewalld/services/netdata.xml
+        owner: root
+        group: root
+        mode: '0664'
+      register: netdata_fw_service
+
+    - name: INSTALL | reload fw 
+      command: >
+        firewall-cmd
+        --reload
+      when: netdata_fw_service is changed
+
+    - name: INSTALL | get fw services
+      command: >
+        firewall-cmd
+        --zone=public
+        --list-services
+      register: netdata_fw_services
+      changed_when: false
+
+    - name: INSTALL | add fw settings for netdata
+      command: >
+        firewall-cmd
+        --zone=public
+        --add-service=netdata
+        {{ item }}
+      when: "'netdata' not in netdata_fw_services"
+      with_items:
+        - ""
+        - "--permanent"
+
+
+- meta: flush_handlers
+
+
+- name: CONFIG | Enable netdata service 
+  service: 
+    name: netdata
+    state: started
+    enabled: yes
+  no_log: true
+

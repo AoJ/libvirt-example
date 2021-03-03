@@ -1,0 +1,50 @@
+---
+
+- name: get public of host from DNS
+  local_action: command dig +short '{{ inventory_hostname }}'
+  register: host_ip_raw
+  when: host_ip | default('') | length == 0
+  changed_when: false
+- name: set public ip to vars
+  set_fact:
+    host_ip: "{{ host_ip_raw.stdout }}"
+  when: host_ip | default('') | length == 0
+  changed_when: false
+
+
+- name: DEPLOY | Check if vm exists
+  action:
+    module: virt
+      name="{{ inventory_hostname }}"
+      command=list_vms
+      uri={{ virt_connection }}
+  register: list_vms
+  delegate_to: "{{ host_placement }}"
+
+
+- name: DEPLOY | Creating virtual server (delete it if exists)
+  action:
+    module: script files/create_vm.sh                       \
+      -n {{ inventory_hostname }}                           \
+      -i {{ host_ip }}                                      \
+      -m {{ vm_memory }}                                    \
+      -c {{ vm_cpu }}                                       \
+      -d {{ vm_os }}                                        \
+      -s {{ vm_template | default(default_vm_template) }}   \
+      {% if vm_data | default('') | length > 0 %}-e {{ vm_data }}{% else %}{% endif %}
+  delegate_to: "{{ host_placement }}"
+  when: inventory_hostname not in list_vms or (force_create_vm | default(false) == true)
+
+
+- name: remove the old ssh hash from known_hosts
+  local_action:
+    module: known_hosts name={{ item }} state=absent
+  with_items:
+    - "{{ inventory_hostname }}"
+    - "{{ host_ip }}"
+
+
+- name: Wait for server to up and ssh accessible
+  wait_for_connection:
+    delay: 1
+    timeout: 300

@@ -1,0 +1,39 @@
+---
+
+- name: DEPLOY | Remove vm {{ vm_name }} files
+  delegate_to: "{{ host_placement }}"
+  become: yes
+  file:
+    state: absent
+    path: "{{ item }}"
+  notify: refresh pool
+  with_items:
+    - "{{ pool_path }}/{{ vm_name }}{{ libvirt_os_disk_suffx }}"
+    - "{{ pool_path }}/{{ vm_name }}{{ libvirt_conf_iso_suffix }}"
+
+
+- name: DEPLOY | find data disks mount path
+  delegate_to: "{{ host_placement }}"
+  become: yes
+  set_fact:
+    vm_data_disks: >
+      {{ ansible_mounts 
+        | selectattr('mount', 'match', '^/data[0-9]+$') 
+        | map(attribute='mount') 
+        | list
+      }}
+  when: vm_data_disks | default([]) | length == 0
+
+
+- name: DEPLOY | Remove vm {{ vm_name }} data disk files
+  delegate_to: "{{ host_placement }}"
+  become: yes
+  file:
+    state: absent
+    path: "{{ pool_path }}/{{ vm_name }}.{{ item }}{{ libvirt_data_disk_suffx }}"
+  notify: refresh pool
+  with_items:
+    - "{{ vm_data_disks }}"
+
+
+- meta: flush_handlers

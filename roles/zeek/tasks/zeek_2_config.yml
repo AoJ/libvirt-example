@@ -1,0 +1,46 @@
+---
+
+- name: INSTALL | create zeek log directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0770
+    owner: root
+    group: root
+  with_items:
+    - /var/log/zeek
+
+
+- name: INSTALL | check if zeek running
+  command: >
+    docker
+      ps
+      --filter "name=zeek"
+      --quiet
+  register: docker_zeek_exists
+  changed_when: false
+
+
+- name: INSTALL | delete old zeek container
+  command: >
+    docker
+      rm
+      -f
+      zeek
+  when: docker_zeek_exists.stdout == ""
+  failed_when: false
+
+
+- name: INSTALL | run zeek container
+  command: >
+    docker
+      run
+      -d
+      --restart=always
+      --net=host
+      --name=zeek
+      --hostname=$(hostname)
+      -v /var/log/zeek:/var/log/zeek
+      fixel/zeek
+      -i {{ zeek_interface }}
+  when: docker_zeek_exists.stdout == ""

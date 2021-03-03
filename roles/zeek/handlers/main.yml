@@ -1,0 +1,9 @@
+---
+- name: reload rsyslog
+  command: pkill -HUP rsyslog
+
+- name: restart rsyslog
+  command: systemctl restart rsyslog
+
+- name: restart zeek
+  command: systemctl restart zeek

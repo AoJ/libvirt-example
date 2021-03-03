@@ -1,0 +1,39 @@
+---
+
+hostname: k.nxiii.cc
+os_generate_hosts_file: no
+
+ansible_python_interpreter: /usr/bin/python3
+
+admin_users:
+  - aoj
+  - centos
+
+end_users: []
+
+zeek_interface: eno3
+
+
+security_auditd_server_enable: yes
+
+
+default_vm_template: CentOS-Stream-GenericCloud-8-20201217.0.x86_64.qcow2
+virt_connection: qemu:///system
+#virt_connection: qemu:///session
+
+libvirt_pools:
+  dwh:
+    pool_path: /var/data/dwh
+    pool_user: "qemu"
+    download:
+      - url: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2"
+        hash: "sha1:f3d9d24c2d7e197f64d794b99a4bac5b29d729cd"
+      - url: "https://cloud.centos.org/centos/8-stream/x86_64/images/CentOS-Stream-GenericCloud-8-20201217.0.x86_64.qcow2"
+        hash: "sha1:93a79dd6a22aab36e0df2dcb51fc4e55c770d7fb"
+  vpn:
+    pool_path: /var/data/vm
+    pool_user: "qemu"
+    download:
+      - url: "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2"
+        hash: "sha1:f3d9d24c2d7e197f64d794b99a4bac5b29d729cd"
+

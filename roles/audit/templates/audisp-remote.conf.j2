@@ -1,0 +1,36 @@
+#
+# This file controls the configuration of the audit remote
+# logging subsystem, audisp-remote.
+#
+
+{% if security_auditd_remote_server %}
+remote_server = {{ security_auditd_remote_server }}
+{% else %}
+remote_server = 
+{% endif %}
+port = 60
+local_port = 60000
+transport = tcp
+queue_file = /var/spool/audit/remote.log
+mode = immediate
+queue_depth = 20240
+format = managed
+network_retry_time = 5
+max_tries_per_record = 100
+max_time_per_record = 5
+heartbeat_timeout = 10
+
+network_failure_action = syslog
+disk_low_action = ignore
+disk_full_action = warn_once
+disk_error_action = warn_once
+remote_ending_action = reconnect
+generic_error_action = syslog
+generic_warning_action = syslog
+queue_error_action = stop
+overflow_action = syslog
+startup_failure_action = warn_once_continue
+
+##krb5_principal =
+##krb5_client_name = auditd
+##krb5_key_file = /etc/audisp/audisp-remote.key

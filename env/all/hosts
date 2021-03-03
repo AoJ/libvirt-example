@@ -1,0 +1,10 @@
+[all_nodes:children]
+k_nxiii_cc
+x_nxiii_cc
+
+[k_nxiii_cc]
+k.nxiii.cc ansible_user=root
+
+[x_nxiii_cc]
+x.nxiii.cc host_placement=k.nxiii.cc host_ip=51.89.76.77 vm_ip=51.89.76.77 ansible_user=root
+

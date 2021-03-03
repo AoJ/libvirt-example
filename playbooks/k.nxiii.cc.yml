@@ -1,0 +1,25 @@
+---
+
+- name: COMMON | bootstrap server
+  hosts: k_nxiii_cc
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  strategy: linear
+
+  roles:
+    - { role: common, role_type: common_1_install_packages, tags: ['install'] }
+    - { role: common, role_type: common_2_config, tags: ['config'] }
+    - { role: common, role_type: common_3_config_ssh_access, tags: ['config', ssh] }
+    - { role: common, role_type: common_4_install_firewalld, tags: ['install'] }
+    - { role: audit, role_type: audit_1_install, tags: [install, audit] }
+    - { role: audit, role_type: audit_2_config, tags: [install, audit] }
+    - { role: docker, role_type: docker_1_install, tags: ['install'] }
+    - { role: docker, role_type: docker_2_config, tags: ['config'] }
+    - { role: zeek, role_type: zeek_1_install, tags: ['install'] }
+    - { role: zeek, role_type: zeek_2_config, tags: ['config'] }
+    - { role: netdata, role_type: netdata_1_install, tags: ['install'] }
+    - { role: netdata, role_type: netdata_2_config, tags: ['config'] }
+    - { role: libvirt, role_type: libvirt_1_install, tags: ['config', libvirt] }
+    - { role: libvirt, role_type: libvirt_2_config, tags: ['config', libvirt] }
+    - { role: libvirt, role_type: libvirt_prepare_1_pool, tags: ['install', libvirt] }

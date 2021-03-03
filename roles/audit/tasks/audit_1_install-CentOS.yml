@@ -1,0 +1,8 @@
+---
+
+- name: INSTALL | install auditd package
+  package:
+    name:
+      - audit
+      - audispd-plugins
+    state: present

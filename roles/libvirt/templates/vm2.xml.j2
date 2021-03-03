@@ -1,0 +1,185 @@
+<domain type='kvm' id='62'>
+  <name>rzthlab045.cz.tmo</name>
+  <memory unit='KiB'>58032128</memory>
+  <currentMemory unit='KiB'>58032128</currentMemory>
+  <vcpu placement='static'>4</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc-i440fx-rhel7.0.0'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode='custom' match='exact' check='full'>
+    <model fallback='forbid'>Skylake-Server-IBRS</model>
+    <feature policy='require' name='md-clear'/>
+    <feature policy='require' name='spec-ctrl'/>
+    <feature policy='require' name='ssbd'/>
+    <feature policy='require' name='hypervisor'/>
+    <feature policy='disable' name='arat'/>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <pm>
+    <suspend-to-mem enabled='no'/>
+    <suspend-to-disk enabled='no'/>
+  </pm>
+  <devices>
+    <emulator>/usr/libexec/qemu-kvm</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/virtimg/pool/rzthlab045.cz.tmo.root.qcow2'/>
+      <backingStore/>
+      <target dev='vda' bus='virtio'/>
+      <alias name='virtio-disk0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw'/>
+      <source file='/virtimg/pool/rzthlab045.cz.tmo.configuration.iso'/>
+      <backingStore/>
+      <target dev='vdb' bus='virtio'/>
+      <alias name='virtio-disk1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data1/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdc' bus='virtio'/>
+      <alias name='virtio-disk2'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data2/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdd' bus='virtio'/>
+      <alias name='virtio-disk3'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data3/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vde' bus='virtio'/>
+      <alias name='virtio-disk4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data4/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdf' bus='virtio'/>
+      <alias name='virtio-disk5'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0a' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data5/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdg' bus='virtio'/>
+      <alias name='virtio-disk6'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0b' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data6/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdh' bus='virtio'/>
+      <alias name='virtio-disk7'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0c' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data7/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdi' bus='virtio'/>
+      <alias name='virtio-disk8'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0d' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data8/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdj' bus='virtio'/>
+      <alias name='virtio-disk9'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0e' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data9/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdk' bus='virtio'/>
+      <alias name='virtio-disk10'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0f' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='/data10/rzthlab045.cz.tmo.data.qcow2'/>
+      <backingStore/>
+      <target dev='vdl' bus='virtio'/>
+      <alias name='virtio-disk11'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x10' function='0x0'/>
+    </disk>
+    <controller type='usb' index='0' model='ich9-ehci1'>
+      <alias name='usb'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x7'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci1'>
+      <alias name='usb'/>
+      <master startport='0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci2'>
+      <alias name='usb'/>
+      <master startport='2'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x1'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci3'>
+      <alias name='usb'/>
+      <master startport='4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x2'/>
+    </controller>
+    <controller type='pci' index='0' model='pci-root'>
+      <alias name='pci.0'/>
+    </controller>
+    <interface type='bridge'>
+      <mac address='52:54:00:3d:bb:40'/>
+      <source bridge='br0'/>
+      <target dev='tap7'/>
+      <model type='virtio'/>
+      <alias name='net0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <source path='/dev/pts/7'/>
+      <target type='isa-serial' port='0'>
+        <model name='isa-serial'/>
+      </target>
+      <alias name='serial0'/>
+    </serial>
+    <console type='pty' tty='/dev/pts/7'>
+      <source path='/dev/pts/7'/>
+      <target type='serial' port='0'/>
+      <alias name='serial0'/>
+    </console>
+    <input type='mouse' bus='ps2'>
+      <alias name='input0'/>
+    </input>
+    <input type='keyboard' bus='ps2'>
+      <alias name='input1'/>
+    </input>
+    <memballoon model='virtio'>
+      <alias name='balloon0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x11' function='0x0'/>
+    </memballoon>
+  </devices>
+</domain>

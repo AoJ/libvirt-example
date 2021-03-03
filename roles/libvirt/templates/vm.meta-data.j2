@@ -1,0 +1,4 @@
+instance-id: iid-{{ vm_name }};
+network-interfaces: {{ libvirt_vm_eth0_expanded | to_nice_yaml }}
+hostname: {{ vm_name }}
+local-hostname: {{ vm_name }}

@@ -1,0 +1,47 @@
+
+
+# get information from all hypervisors
+# the vm can be spawned on another host that is
+# filled in host_placement
+- name: DEPLOY | Check if vm {{ vm_name }} exists
+  delegate_to: "{{ host_placement }}"
+  become: yes
+  virt:
+    name: "{{ vm_name }}"
+    command: status
+    uri: "{{ virt_connection }}"
+  ignore_errors: yes
+  register: vm_exists
+  failed_when: >
+    not (
+      vm_exists.status is defined
+      or (vm_exists.msg is defined and vm_exists.msg.endswith(" not found"))
+    )
+
+
+- name: DEPLOY | debug Check if vm {{ vm_name }} exists
+  debug:
+    msg: "{{ vm_name }} - {{ vm_exists.status | default(vm_exists.msg) }}"
+
+
+# shutdown vm on all hosts, where is running
+# we can't run vm on more hosts due to
+# ip adderss conflicts
+- name: DEPLOY | Force shutdown vm {{ vm_name }}
+  delegate_to: "{{ host_placement }}"
+  become: yes
+  virt:
+    name: "{{ vm_name }}"
+    state: destroyed
+    uri: "{{ virt_connection }}"
+  when: vm_exists.status is defined
+
+
+- name: DEPLOY | Force shutdown vm {{ vm_name }}
+  delegate_to: "{{ host_placement }}"
+  become: yes
+  virt:
+    name: "{{ vm_name }}"
+    command: undefine
+    uri: "{{ virt_connection }}"
+  when: vm_exists.status is defined

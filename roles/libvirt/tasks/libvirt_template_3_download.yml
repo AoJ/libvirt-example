@@ -1,0 +1,10 @@
+---
+
+- name: DEPLOY | download template image to local repository
+  fetch:
+    src: "{{ pool_path }}/{{ template_name }}.root.qcow2"
+    dest: "{{ repository_path }}/{{ template_name }}.qcow2"
+    flat: yes
+  delegate_to: "{{ host_placement }}"
+
+

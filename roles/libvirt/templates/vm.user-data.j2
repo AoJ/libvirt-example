@@ -1,0 +1,32 @@
+#cloud-config
+ssh_pwauth: True
+package_upgrade: false
+output: {all: '| tee -a /var/log/cloud-init-output.log'}
+ssh_genkeytypes: ['ed25519', 'rsa']
+#timezone: Europa/Prague
+#1wU7yeGVkMaRkI6VaZ5EWJaOWl91t
+#mkpasswd --method=SHA-512 -S 2DbLfo1ws6uPLTbMXt
+chpasswd:
+  list: |
+     "{{ ansible_user }}:{{ libvirt_create_root_password.stdout }}"
+  expire: False
+users:
+  - name: {{ ansible_user }}
+    gecos: Ansible provisioning
+    lock-passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+{% for key in libvirt_vm_default_ssh_keys %}
+      - {{ key }}
+{% endfor %}
+
+{% for admin_user in admin_users %}
+  - name: {{ admin_user }}
+    gecos: Admin user {{ admin_user }}
+    lock-passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+{% for key in libvirt_vm_default_ssh_keys %}
+      - {{ key }}
+{% endfor %}
+{% endfor %}

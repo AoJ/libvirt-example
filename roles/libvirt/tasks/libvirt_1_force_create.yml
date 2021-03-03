@@ -1,0 +1,6 @@
+---
+
+- set_fact:
+    force_create_vm: true
+
+- include: "libvirt_1_soft_create2.yml"

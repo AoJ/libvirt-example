@@ -1,0 +1,77 @@
+---
+
+- name: CONFIG | set all users variable
+  set_fact:
+    all_admin_users: "{{ admin_users + ['root'] }}"
+
+
+- name: CONFIG | create admin users
+  user:
+    name: "{{ item }}"
+    shell: /bin/bash
+#    groups: wheel,qemu,kvm,libvirt
+    groups: wheel
+    append: yes
+    generate_ssh_key: yes
+    ssh_key_type: ed25519
+    ssh_key_file: .ssh/id_ed25519
+    ssh_key_comment: "{{ item }}@{{ ansible_hostname }}"
+  with_items:
+    - "{{ all_admin_users }}"
+
+
+- name: CONFIG | create end users
+  user:
+    name: "{{ item }}"
+    shell: /bin/bash
+    append: yes
+    generate_ssh_key: yes
+    ssh_key_type: ed25519
+    ssh_key_file: .ssh/id_ed25519
+    ssh_key_comment: "{{ item }}@{{ ansible_hostname }}"
+  with_items:
+    - "{{ end_users }}"
+
+
+- name: CONFIG | place a key to authorized_keys
+  authorized_key:
+    user: "{{ item }}"
+    state: present
+    key: "https://github.com/AoJ.keys"
+    manage_dir: false
+  with_items:
+    - "{{ all_admin_users }}"
+
+
+- name: CONFIG | Make sshd config more secured
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?{{ item.key }}'
+    line: "{{ item.key }} {{ item.value }}"
+    validate: sshd -t -f %s
+  notify: restart sshd
+  with_items:
+    - key: AllowUsers
+      value: "root {{ all_admin_users | join(' ') }}"
+    - key: PermitRootLogin
+      value: "yes"
+    - key: PubkeyAuthentication
+      value: "yes"
+    - key: PasswordAuthentication
+      value: "no"
+    - key: GSSAPIAuthentication
+      value: "no"
+
+
+- name: CONFIG | Add admin users to sudoers
+  lineinfile:
+    path: /etc/sudoers
+    regexp: '^#?{{ item.key }}'
+    line: "{{ item.value }}"
+    validate: visudo -cf %s
+  with_items:
+    - key: "%wheel"
+      value: "%wheel        ALL=(ALL) NOPASSWD: ALL"
+
+
+

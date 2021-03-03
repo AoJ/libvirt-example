@@ -1,0 +1,14 @@
+---
+# handlers file for common
+- name: restart chrony
+  become: yes
+  systemd:
+    name: chronyd
+    state: restarted
+
+
+- name: restart sshd
+  become: yes
+  systemd:
+    name: sshd
+    state: restarted

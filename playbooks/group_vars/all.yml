@@ -1,0 +1,34 @@
+---
+
+### NEW
+
+# add list of yum packages that will be installed with default packages
+# you cen override in env group_vars/all_nodes.yml
+os_extra_packages: []
+
+# generate /etc/hosts files from server inventory list?
+# usefull for clouds and custom domains overriding
+os_generate_hosts_file: no
+
+hostname: ''
+
+root_ssh_access_keys:
+  - https://github.com/AoJ.keys
+
+
+admin_users: []
+end_users: []
+
+
+http_proxy: ""
+https_proxy: ""
+
+intel_iommu: false
+
+allowlist_ips: []
+
+zeek_interface: eth0
+
+security_auditd_server_enable: no
+security_auditd_remote_server: #<ip>
+security_auditd_server_allowed_ips: "{{ allowlist_ips }}"
